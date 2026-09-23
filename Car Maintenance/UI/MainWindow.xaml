@@ -1,0 +1,237 @@
+<Window x:Class="CarMaintenance.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Car Maintenance" Width="1180" Height="760" MinWidth="900" MinHeight="560"
+        WindowStartupLocation="CenterScreen" Style="{StaticResource AppWindow}">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ============ Sidebar: vehicle list ============ -->
+        <Border Background="{StaticResource SidebarBackground}">
+            <DockPanel Margin="18,22,18,18">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="4,0,0,4">
+                    <Border Width="40" Height="40" CornerRadius="10" Background="{StaticResource Accent}">
+                        <TextBlock Text="🚗" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Car Maintenance" FontSize="17" FontWeight="Bold" Foreground="White" />
+                        <TextBlock Text="Service tracker" FontSize="12" Foreground="{StaticResource SidebarMuted}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <Button DockPanel.Dock="Bottom" Style="{StaticResource PrimaryButton}" Click="AddVehicle_Click" Margin="0,14,0,0">
+                    <TextBlock Text="＋  Add vehicle" />
+                </Button>
+
+                <TextBlock DockPanel.Dock="Top" Text="MY VEHICLES" FontSize="11" FontWeight="Bold"
+                           Foreground="{StaticResource SidebarMuted}" Margin="4,28,0,10" />
+
+                <Grid>
+                    <ListBox x:Name="VehicleList" Background="Transparent" BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             SelectionChanged="VehicleList_SelectionChanged">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Margin" Value="0,0,0,6" />
+                                <Setter Property="Cursor" Value="Hand" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="Bd" CornerRadius="10" Padding="14,11" Background="Transparent">
+                                                <ContentPresenter />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource SidebarHover}" />
+                                                </Trigger>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource SidebarSelected}" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Title}" Foreground="White" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Subtitle}" Foreground="{StaticResource SidebarMuted}"
+                                                   FontSize="12" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <Border Grid.Column="1" Background="{StaticResource PlateBackground}" CornerRadius="4"
+                                            Padding="6,2" VerticalAlignment="Center" Margin="8,0,0,0">
+                                        <TextBlock Text="{Binding Vehicle.LicensePlate}" FontSize="11" FontWeight="Bold"
+                                                   Foreground="#111827" FontFamily="Consolas" />
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <TextBlock x:Name="NoVehiclesHint" Text="No vehicles yet.&#x0a;Add your first one below."
+                               Foreground="{StaticResource SidebarMuted}" TextAlignment="Center"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Grid>
+            </DockPanel>
+        </Border>
+
+        <!-- ============ Main content ============ -->
+        <Grid Grid.Column="1">
+
+            <!-- Empty state -->
+            <StackPanel x:Name="EmptyState" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="380">
+                <Border Width="84" Height="84" CornerRadius="42" Background="{StaticResource AccentSoft}" HorizontalAlignment="Center">
+                    <TextBlock Text="🚙" FontSize="38" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <TextBlock Text="Select a vehicle" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,18,0,6" />
+                <TextBlock Text="Pick a vehicle from the list to see its service history, or add a new one to get started."
+                           Style="{StaticResource Muted}" FontSize="14" TextAlignment="Center" TextWrapping="Wrap" />
+                <Button Style="{StaticResource PrimaryButton}" Content="＋  Add vehicle" Click="AddVehicle_Click"
+                        HorizontalAlignment="Center" Margin="0,22,0,0" />
+            </StackPanel>
+
+            <!-- Vehicle details -->
+            <ScrollViewer x:Name="DetailsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="36,30,36,36">
+
+                    <!-- Header -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="VEHICLE" Style="{StaticResource Muted}" FontWeight="Bold" FontSize="11" />
+                            <TextBlock x:Name="VehicleTitle" FontSize="28" FontWeight="Bold" Margin="0,2,0,8"
+                                       TextTrimming="CharacterEllipsis" />
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="{StaticResource PlateBackground}" CornerRadius="5" Padding="10,3">
+                                    <TextBlock x:Name="VehiclePlate" FontFamily="Consolas" FontWeight="Bold" Foreground="#111827" />
+                                </Border>
+                                <TextBlock x:Name="VehicleYear" Style="{StaticResource Muted}" FontSize="14"
+                                           VerticalAlignment="Center" Margin="12,0,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+                            <Button Style="{StaticResource DangerButton}" Content="Remove vehicle" Click="RemoveVehicle_Click" />
+                            <Button Style="{StaticResource PrimaryButton}" Content="＋  Add service" Click="AddService_Click"
+                                    Margin="10,0,0,0" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Stats -->
+                    <UniformGrid Columns="4" Margin="-8,26,-8,0">
+                        <Border Style="{StaticResource Card}" Margin="8">
+                            <StackPanel>
+                                <TextBlock Text="📍  Odometer" Style="{StaticResource Muted}" />
+                                <TextBlock x:Name="StatMileage" FontSize="24" FontWeight="Bold" Margin="0,6,0,0" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Margin="8">
+                            <StackPanel>
+                                <TextBlock Text="🧾  Services" Style="{StaticResource Muted}" />
+                                <TextBlock x:Name="StatCount" FontSize="24" FontWeight="Bold" Margin="0,6,0,0" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Margin="8">
+                            <StackPanel>
+                                <TextBlock Text="💰  Total spent" Style="{StaticResource Muted}" />
+                                <TextBlock x:Name="StatSpent" FontSize="24" FontWeight="Bold" Margin="0,6,0,0"
+                                           Foreground="{StaticResource Accent}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Margin="8">
+                            <StackPanel>
+                                <TextBlock Text="📅  Last service" Style="{StaticResource Muted}" />
+                                <TextBlock x:Name="StatLast" FontSize="24" FontWeight="Bold" Margin="0,6,0,0" />
+                                <TextBlock x:Name="StatLastAgo" Style="{StaticResource Muted}" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <!-- History -->
+                    <Border Style="{StaticResource Card}" Margin="0,18,0,0" Padding="0">
+                        <StackPanel>
+                            <DockPanel Margin="22,18,22,14">
+                                <TextBlock Text="Service history" FontSize="17" FontWeight="Bold" />
+                                <TextBlock x:Name="HistoryCount" Style="{StaticResource Muted}" HorizontalAlignment="Right"
+                                           VerticalAlignment="Center" />
+                            </DockPanel>
+
+                            <!-- Column headers -->
+                            <Border Background="#F8FAFC" BorderBrush="{StaticResource CardBorder}" BorderThickness="0,1,0,1" Padding="22,9">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="190" />
+                                        <ColumnDefinition Width="120" />
+                                        <ColumnDefinition Width="120" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="110" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="TYPE" Style="{StaticResource Muted}" FontWeight="Bold" FontSize="11" />
+                                    <TextBlock Grid.Column="1" Text="DATE" Style="{StaticResource Muted}" FontWeight="Bold" FontSize="11" />
+                                    <TextBlock Grid.Column="2" Text="MILEAGE" Style="{StaticResource Muted}" FontWeight="Bold" FontSize="11" />
+                                    <TextBlock Grid.Column="3" Text="NOTES" Style="{StaticResource Muted}" FontWeight="Bold" FontSize="11" />
+                                    <TextBlock Grid.Column="4" Text="COST" Style="{StaticResource Muted}" FontWeight="Bold" FontSize="11"
+                                               HorizontalAlignment="Right" />
+                                </Grid>
+                            </Border>
+
+                            <ItemsControl x:Name="HistoryList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{StaticResource CardBorder}" BorderThickness="0,0,0,1" Padding="22,12">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="190" />
+                                                    <ColumnDefinition Width="120" />
+                                                    <ColumnDefinition Width="120" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="110" />
+                                                </Grid.ColumnDefinitions>
+                                                <Border Background="{Binding TypeBack}" CornerRadius="12" Padding="10,4"
+                                                        HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                    <TextBlock Foreground="{Binding TypeFore}" FontWeight="SemiBold" FontSize="12.5">
+                                                        <Run Text="{Binding TypeIcon, Mode=OneWay}" />
+                                                        <Run Text="{Binding TypeName, Mode=OneWay}" />
+                                                    </TextBlock>
+                                                </Border>
+                                                <TextBlock Grid.Column="1" Text="{Binding Date}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="2" Text="{Binding Mileage}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="3" Text="{Binding Notes}" Foreground="{StaticResource TextMuted}"
+                                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                                           ToolTip="{Binding Notes}" Margin="0,0,12,0" />
+                                                <TextBlock Grid.Column="4" Text="{Binding Cost}" FontWeight="SemiBold"
+                                                           HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <StackPanel x:Name="NoHistoryHint" Margin="0,34" HorizontalAlignment="Center">
+                                <TextBlock Text="🧰" FontSize="30" HorizontalAlignment="Center" />
+                                <TextBlock Text="No services recorded yet" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,8,0,2" />
+                                <TextBlock Text="Use “Add service” to log the first one." Style="{StaticResource Muted}"
+                                           HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Window>

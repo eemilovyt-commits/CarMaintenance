@@ -5,3 +5,4 @@ obj/
 .idea/**/shelf/
 *.user
 .vs/
+publish/
